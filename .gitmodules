@@ -1,3 +1,4 @@
 [submodule "Core/CAN"]
 	path = Core/CAN
 	url = https://github.com/kthfspe/CAN.git
+	branch = AMS_and_Charger_Development
