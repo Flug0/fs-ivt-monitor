@@ -10,6 +10,7 @@ from random import randint
 class Backend():
     def __init__(self):
         self.db = cantools.database.load_file('../Core/CAN/can2.dbc')
+        self.virtual = False
         self.ch = self.select_channel()
         self.ch2 = self.select_channel(-2)
         self.data = dict()
@@ -42,7 +43,8 @@ class Backend():
             canTx["IVT_Result_I_Channel_Error"] = 0
             canTx["IVT_ID_Result_I"] = 0
             canTx["IVT_MsgCount_Result_I"] = 0
-            canTx["IVT_Result_I"] = 1
+            canTx["IVT_Result_I"] = randint(0, 100)
+
             tx_data = tx_frame.encode(canTx)
             # Send encoded data
             self.ch2.write_raw(frame_id, tx_data)
@@ -59,7 +61,7 @@ class Backend():
             canTx[f"IVT_Result_U{i+1}_Channel_Error"] = 0
             canTx[f"IVT_ID_Result_U{i+1}"] = i+1
             canTx[f"IVT_MsgCount_Result_U{i+1}"] = 0
-            canTx[f"IVT_Result_U{i+1}"] = 1
+            canTx[f"IVT_Result_U{i+1}"] = randint(0, 100)
 
             tx_data = tx_frame.encode(canTx)
             # Send encoded data
@@ -79,9 +81,18 @@ class Backend():
                     new_data.update(data)
             except:
                 print("ERROR")
-        print("GOT DATA")
         self.data.update(new_data)
         return new_data
+
+    # Return current important data (IVT_Result)
+    def get_important_data(self):
+        d = dict()
+        d["IVT_Result_I"] = self.data["IVT_Result_I"]
+        d["IVT_Result_U1"] = self.data["IVT_Result_U1"]
+        d["IVT_Result_U2"] = self.data["IVT_Result_U2"]
+        d["IVT_Result_U3"] = self.data["IVT_Result_U3"]
+        return d
+
 
     # Select channel by channel id, if none selected, try to connect to CAN2,
     # if real CAN not connected, connect to VIRTUAL CAN2
@@ -115,28 +126,31 @@ class Backend():
         ch.setBusParams(canlib.canBITRATE_500K)
         # Turn on bus
         ch.busOn()
+        chd = canlib.ChannelData(selected)
+
+        if bool(re.search("[Vv]irtual", chd.channel_name)):
+            self.virtual = True
         return ch
 
     # Update data
     def update(self):
-        pass
+        # Only send data if on Virtual channel
+        if self.virtual:
+            self.send_data()
+        self.get_data()
 
-
-
-
-connection = Backend()
-connection.get_available_channels()
-#db.select_channel()
-#db.select_channel(1)
-print(connection.frame_ids)
-print(connection.data)
-connection.send_data()
-print(connection.ch.readStatus())
-print(connection.ch.readStatus())
-connection.get_data()
-print(connection.data)
-
-
+"""
+c = Backend()
+c.get_available_channels()
+for i in range(0, 100):
+    c.send_data()
+    c.get_data()
+    print(f"I: {c.data['IVT_Result_I']}")
+    print(f"U1: {c.data['IVT_Result_U1']}")
+    print(f"U2: {c.data['IVT_Result_U2']}")
+    print(f"U3: {c.data['IVT_Result_U3']}")
+"""
+#b = Backend()
 
 
 def test():
