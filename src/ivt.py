@@ -11,6 +11,7 @@ class Backend():
     def __init__(self):
         self.db = cantools.database.load_file('../Core/CAN/can2.dbc')
         self.ch = self.select_channel()
+        self.ch2 = self.select_channel(-2)
         self.data = dict()
         self.channels = dict()
         self.frame_ids = [self.db.get_message_by_name("IVT_Msg_Result_I").frame_id,
@@ -44,7 +45,7 @@ class Backend():
             canTx["IVT_Result_I"] = 1
             tx_data = tx_frame.encode(canTx)
             # Send encoded data
-            self.ch.write_raw(frame_id, tx_data)
+            self.ch2.write_raw(frame_id, tx_data)
 
         # For every frame_id representing Voltage messages, send voltage data
         for i, frame_id in enumerate(self.frame_ids[1:]):
@@ -62,21 +63,18 @@ class Backend():
 
             tx_data = tx_frame.encode(canTx)
             # Send encoded data
-            self.ch.write_raw(frame_id, tx_data)
-        print(self.ch.readStatus())
+            self.ch2.write_raw(frame_id, tx_data)
 
     # Get data from CAN
     def get_data(self):
         new_data = dict()
-        print(self.ch.readStatus())
         while Stat.RX_PENDING in self.ch.readStatus():
             rx = self.ch.read()
-            rx_id = rx
+            rx_id = rx.id
             rx_data = bytes(rx.data)
-
             try:
                 if rx_id in self.frame_ids:
-                    rx_frame = db.get_message_by_frame_id(rx_id)
+                    rx_frame = self.db.get_message_by_frame_id(rx_id)
                     data = rx_frame.decode(rx.data)
                     new_data.update(data)
             except:
@@ -92,19 +90,24 @@ class Backend():
         if selected == -1:
             for ch_num in range(canlib.getNumberOfChannels()):
                 chd = canlib.ChannelData(ch_num)
-                # Looks for Virtual CAN2 channel
+                # Look for Virtual CAN2 channel
                 if re.search("[Vv]irtual.+(channel 1)", chd.channel_name):
-                    print(f"Found Virtual CAN channel with channel_id: {ch_num}")
-                    ch_virtual = ch_num
-                # Looks for Non-Virtual channel, with channel number 1.
-                if not re.search("[Vv]irtual", chd.channel_name) and re.match("(channel 1)", chd.channel_name):
-                    print(f"Found Non-Virtual CAN channel with channel_id: {ch_num}")
-                    ch_real = ch_num
+                    print(f"Found Virtual CAN2 channel with channel_id: {ch_num}")
+                    selected = ch_num
                     break
-        if ch_real:
-            selected = ch_real
-        elif ch_virtual:
-            selected = ch_real
+                # Look for Non-Virtual channel, with channel number 1.
+                if not re.search("[Vv]irtual", chd.channel_name) and re.match("(channel 1)", chd.channel_name):
+                    print(f"Found Non-Virtual CAN2 channel with channel_id: {ch_num}")
+                    selected = ch_num
+                    break
+        elif selected == -2:
+            for ch_num in range(canlib.getNumberOfChannels()):
+                chd = canlib.ChannelData(ch_num)
+                # Look for Virtual CAN1 channel
+                if re.search("[Vv]irtual.+(channel 0)", chd.channel_name):
+                    print(f"Found Virtual CAN1 channel with channel_id: {ch_num}")
+                    selected = ch_num
+                    break
         # Open selected channel, and allow virtual channel
         ch = canlib.openChannel(selected, canlib.canOPEN_ACCEPT_VIRTUAL)
         ch.setBusOutputControl(canlib.canDRIVER_NORMAL)
@@ -127,8 +130,8 @@ connection.get_available_channels()
 #db.select_channel(1)
 print(connection.frame_ids)
 print(connection.data)
-print(connection.ch.readStatus())
 connection.send_data()
+print(connection.ch.readStatus())
 print(connection.ch.readStatus())
 connection.get_data()
 print(connection.data)
