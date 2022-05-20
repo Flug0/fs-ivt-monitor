@@ -103,13 +103,21 @@ class Ui_MainWindow(object):
 
         self.run = False
 
+        # Add legend
+        self.graphicsView.addLegend()
+
         self.y = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.x = [-0.3, -0.2, -0.1]
 
-        self.data_line0 = self.graphicsView.plot(self.x, self.y[0], pen=pyqtgraph.mkPen('r', width=5))
-        self.data_line1 = self.graphicsView.plot(self.x, self.y[1], pen=pyqtgraph.mkPen('g', width=5))
-        self.data_line2 = self.graphicsView.plot(self.x, self.y[2], pen=pyqtgraph.mkPen('b', width=5))
-        self.data_line3 = self.graphicsView.plot(self.x, self.y[3], pen=pyqtgraph.mkPen('y', width=5))
+        self.data_line0 = self.graphicsView.plot(self.x, self.y[0],
+                          pen=pyqtgraph.mkPen('r', width=5), name="Current")
+        self.data_line1 = self.graphicsView.plot(self.x, self.y[1],
+                          pen=pyqtgraph.mkPen('g', width=5), name="Voltage 1")
+        self.data_line2 = self.graphicsView.plot(self.x, self.y[2],
+                          pen=pyqtgraph.mkPen('b', width=5), name="Voltage 2")
+        self.data_line3 = self.graphicsView.plot(self.x, self.y[3],
+                          pen=pyqtgraph.mkPen('y', width=5), name="Voltage 3")
+
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
