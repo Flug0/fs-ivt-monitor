@@ -138,30 +138,3 @@ class Backend():
         if self.virtual:
             self.send_data()
         self.get_data()
-
-"""
-c = Backend()
-c.get_available_channels()
-for i in range(0, 100):
-    c.send_data()
-    c.get_data()
-    print(f"I: {c.data['IVT_Result_I']}")
-    print(f"U1: {c.data['IVT_Result_U1']}")
-    print(f"U2: {c.data['IVT_Result_U2']}")
-    print(f"U3: {c.data['IVT_Result_U3']}")
-"""
-#b = Backend()
-
-
-def test():
-    db = cantools.database.load_file('../Core/CAN/can2.dbc')
-    print(db.messages)
-    print(db.get_message_by_name("IVT_Msg_Result_U1"))
-    #print(db.get_message_by_name("charger_config").signals)
-
-    num_channels = canlib.getNumberOfChannels()
-    print(f"Found {num_channels} channels")
-    for ch in range(num_channels):
-        chd = canlib.ChannelData(ch)
-        print(f"[Channel {ch}] {chd.channel_name} ({chd.card_upc_no} / {chd.card_serial_no})")
-    print(Stat.RX_PENDING)

@@ -1,6 +1,4 @@
-from ivt import Backend
-from PyQt5 import QtCore, QtGui, QtWidgets
-from fs_ivt_gui import Ui_MainWindow
+from ivt_backend import Backend
 import time
 import sys
 
@@ -11,8 +9,6 @@ class Data_collector():
         self.delta_t = 0.1 # How much minimum time difference between each data point
         self.start_time = time.time()
         self.prev_time = 0
-
-        self.win = Ui_MainWindow()
 
 
     # Update data from backend, if updated, return True
@@ -34,12 +30,21 @@ class Data_collector():
         for element in self.data[last_time_key]:
             lst.append(self.data[last_time_key][element])
         #print(last_time_key, lst)
-        self.win.plot(last_time_key, lst)
 
     def run(self):
-        for i in range(10000):
-            if d.get_data():
-                d.plot_data()
+        if self.get_data():
+            #self.plot_data()
+            return True
+        else:
+            return False
+
+    # Convert last data point to string format and return it
+    def send_data(self):
+        last_time_key = list(self.data)[-1]
+        string = str(last_time_key)
+        for element in self.data[last_time_key]:
+            string += "$" + str(self.data[last_time_key][element])
+        return string
 
 
 if __name__ == "__main__":
@@ -52,9 +57,3 @@ if __name__ == "__main__":
     status = app.exec_()
     d.run()
     sys.exit(status)
-
-
-for index in range(0, 1000):
-    print(d.data)
-    d.get_data()
-    d.plot_data()
