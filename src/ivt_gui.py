@@ -105,11 +105,22 @@ class Ui_MainWindow(object):
 
         # Add legend
         self.graphicsView.addLegend()
+        # Set axis
+        self.p1 = self.graphicsView.plotItem
+        self.p1.setLabels(left="Voltage (mV)")
+        self.p2 = pyqtgraph.ViewBox()
+        self.p1.showAxis("right")
+        self.p1.scene().addItem(self.p2)
+        self.p1.getAxis("right").linkToView(self.p2)
+        self.p2.setXLink(self.p1)
+        self.p1.getAxis("right").setLabel("Current (mA)", color="#ffffff")
+
+        #self.p2.addItem(pyqtgraph.plot([10, 20, 40, 80, 40, 20]))
 
         self.y = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.x = [-0.3, -0.2, -0.1]
 
-        self.data_line0 = self.graphicsView.plot(self.x, self.y[0],
+        self.data_line0 = self.p1.plot(self.x, self.y[0],
                           pen=pyqtgraph.mkPen('r', width=5), name="Current")
         self.data_line1 = self.graphicsView.plot(self.x, self.y[1],
                           pen=pyqtgraph.mkPen('g', width=5), name="Voltage 1")
@@ -128,7 +139,11 @@ class Ui_MainWindow(object):
 
     def get_worker_data(self, data):
         data = data.split("$")
-        # Add time to x-axis
+        # Add time to x-axis, remove first time if plot becomes too big
+        if len(self.x) > 100:
+            self.x = self.x[1:]
+            for i in range(len(self.y)):
+                self.y[i] = self.y[i][1:]
         self.x.append(float(data.pop(0)))
         # Add elements to respective y-axis
         for i, val in enumerate(data):
@@ -145,7 +160,6 @@ class Ui_MainWindow(object):
     def plot(self, x, y):
         for i, value in enumerate(y):
             self.y[i].append(value)
-        self.x.append(x)
         self.data_line0.setData(self.x, self.y[0])
         self.data_line1.setData(self.x, self.y[1])
         self.data_line2.setData(self.x, self.y[2])
