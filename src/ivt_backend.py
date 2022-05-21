@@ -105,7 +105,7 @@ class Backend():
                 if re.search("[Vv]irtual.+(channel 1)", chd.channel_name):
                     print(f"Found Virtual CAN2 channel with channel_id: {ch_num}")
                     selected = ch_num
-                    break
+                    #break
                 # Look for Non-Virtual channel, with channel number 1.
                 if not re.search("[Vv]irtual", chd.channel_name) and re.match("(channel 1)", chd.channel_name):
                     print(f"Found Non-Virtual CAN2 channel with channel_id: {ch_num}")
